@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="login.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar" style="display: flex;">
+        <div class="tital">
+            <a href="#" style="font-size: 20px; font-weight: bold;">Product Testing</a>
+        </div>
+        <div class="navend">
+            <a href="#" style="font-size: 18px;">Home</a>
+            <a href="index.html" style="font-size: 16px;">Maintainable</a>
+            <a href="#" style="font-size: 18px;">Warranty</a>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <div class="title-text">
+            <div class="title login">Login Form</div>
+            <div class="title signup">Signup Form</div>
+        </div>
+        <div class="form-container">
+            <div class="slide-controls">
+                <input type="radio" name="slide" id="login" checked>
+                <input type="radio" name="slide" id="signup">
+                <label for="login" class="slide login">Login</label>
+                <label for="signup" class="slide signup">Signup</label>
+                <div class="slider-tab"></div>
+            </div>
+            <div class="form-inner">
+                <!-- HTML form for login -->
+                <form class="login" action="/login" method="POST" id="loginForm">
+                    <div class="field">
+                        <input type="email" id="loginEmail" name="email" placeholder="Email Address" required>
+                    </div>
+                    <div class="field">
+                        <input type="password" name="password" id="loginPassword" placeholder="Password" required>
+                        <!-- Changed name attribute to 'password' -->
+                    </div>
+                    <div class="pass-link"><a href="#">Forgot password?</a></div>
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" value="Login">
+                    </div>
+                    <div class="signup-link">Create an account <a href="#">Signup now</a></div>
+                </form>
+               
+                <form action="/signup" class="signup" method="POST" id="signupForm"> <!-- Added id attribute -->
+                    <!-- Form fields for signing up -->
+                    <div class="field">
+                        <input type="text" name="username" id="signupUsername" placeholder="Name" required>
+                        <!-- Added id attribute -->
+                    </div>
+                    <div class="field">
+                        <input type="text" name="email" id="signupEmail" placeholder="Email Address" required>
+                        <!-- Added id attribute -->
+                    </div>
+                    <div class="field">
+                        <input type="password" name="password" id="signupPassword" placeholder="Password" required>
+                        <!-- Added id attribute -->
+                    </div>
+                    <div class="field btn">
+                        <div class="btn-layer"></div>
+                        <input type="submit" value="Signup">
+                    </div>
+                    <div class="signup-link">Already have an account? <a href="">Login</a></div>
+                </form>
+                <!-- Add this div where you want the signup success message to appear -->
+                <div id="signupSuccessMessage" style="display: none;">
+                    Signup successful!
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+
+</body>
+
+</html>
