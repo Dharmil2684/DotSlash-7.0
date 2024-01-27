@@ -5,13 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Testing Log Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Center align container */
+        .center-container {
+            text-align: center;
+        }
+
+        /* Center align button */
+        .centered-button {
+            margin: 0 auto;
+            /* Added margin auto for centering */
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Product Testing Log Form</h1>
-
+    <div class="container">
+        <h1>Product Testing Log Form</h1>
+    </div>
     <!-- Form for adding data to ProductTestingLog table -->
-    <form id="productTestingForm">
+    <form id="productTestingForm" class="container">
         <label for="productId">Product ID:</label>
         <input type="number" id="productId" name="productId" required><br>
 
@@ -34,15 +48,20 @@
     <div id="productResultMessage"></div>
 
     <!-- Form for adding data to Models table -->
-    <form id="addModelForm">
+    <form id="addModelForm" class="container" style="display: none;">
         <label for="newModelName">New Model Name:</label>
         <input type="text" id="newModelName" name="newModelName" required><br>
 
         <button type="button" onclick="submitModelForm()">Submit Model Form</button>
-        
-        <!-- Refresh button to update Model Names dropdown -->
-        <button type="button" onclick="refreshModelDropdown()">Refresh Model Dropdown</button>
+        <button type="button" onclick="refreshModelDropdown('addModelButton')">Refresh Model Dropdown</button>
     </form>
+
+    <!-- Center align the button container -->
+    <div class="center-container">
+        <!-- Button to toggle the "New Model Name" container -->
+        <button type="button" id="addModelButton" onclick="toggleNewModelForm('addModelButton')"
+            class="centered-button">Add New Model</button>
+    </div>
 
     <!-- Result message for the Models form -->
     <div id="modelResultMessage"></div>
@@ -73,9 +92,28 @@
         // Fetch and populate Model Names when the page loads
         document.addEventListener('DOMContentLoaded', fetchAndPopulateModelNames);
 
+        // Function to toggle visibility of "New Model Name" container and hide the button
+        function toggleNewModelForm(buttonId) {
+            const addModelForm = document.getElementById('addModelForm');
+            const addButton = document.getElementById(buttonId);
+
+            // Hide the button
+            addButton.style.display = 'none';
+
+            // Toggle visibility of the form
+            if (addModelForm.style.display === 'none' || addModelForm.style.display === '') {
+                addModelForm.style.display = 'block';
+            } else {
+                addModelForm.style.display = 'none';
+                addButton.textContent = 'Add New Model'; // Update button text
+            }
+        }
+
         // Function to refresh Model Names dropdown
-        function refreshModelDropdown() {
+        function refreshModelDropdown(buttonId) {
             const modelNameDropdown = document.getElementById('modelName');
+            const addButton = document.getElementById(buttonId);
+            const addModelForm = document.getElementById('addModelForm');
 
             // Clear existing options
             modelNameDropdown.innerHTML = '';
@@ -96,6 +134,14 @@
                 })
                 .catch(error => {
                     console.error('Error fetching updated Model Names:', error);
+                })
+                .finally(() => {
+                    // Show the button
+                    addButton.style.display = 'block';
+                    // Hide the addModelForm
+                    addModelForm.style.display = 'none';
+                    // Center the button again
+                    addButton.classList.add('centered-button');
                 });
         }
 
