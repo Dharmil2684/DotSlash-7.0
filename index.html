@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Testing Log Form</title>
+</head>
+
+<body>
+    <h1>Product Testing Log Form</h1>
+
+    <!-- Form for adding data to ProductTestingLog table -->
+    <form id="productTestingForm">
+        <label for="productId">Product ID:</label>
+        <input type="number" id="productId" name="productId" required><br>
+
+        <label for="modelId">Model ID:</label>
+        <input type="number" id="modelId" name="modelId" required><br>
+
+        <label for="testingStartDate">Testing Start Date:</label>
+        <input type="date" id="testingStartDate" name="testingStartDate" required><br>
+
+        <label for="failureDate">Failure Date:</label>
+        <input type="date" id="failureDate" name="failureDate" required><br>
+
+        <label for="maintenanceCost">Maintenance Cost:</label>
+        <input type="number" id="maintenanceCost" name="maintenanceCost" step="0.01" required><br>
+
+        <button type="button" onclick="submitProductForm()">Submit Product Form</button>
+    </form>
+
+    <!-- Result message for the ProductTestingLog form -->
+    <div id="productResultMessage"></div>
+
+    <!-- Form for adding data to Models table -->
+    <form id="addModelForm">
+        <label for="newModelName">New Model Name:</label>
+        <input type="text" id="newModelName" name="newModelName" required><br>
+
+        <button type="button" onclick="submitModelForm()">Submit Model Form</button>
+    </form>
+
+    <!-- Result message for the Models form -->
+    <div id="modelResultMessage"></div>
+
+    <script>
+        function submitProductForm() {
+            const form = document.getElementById('productTestingForm');
+
+            const data = {
+                productId: form.productId.value,
+                modelId: form.modelId.value,
+                testingStartDate: form.testingStartDate.value,
+                failureDate: form.failureDate.value,
+                maintenanceCost: form.maintenanceCost.value
+            };
+
+            fetch('/add-to-testing-log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('productResultMessage').innerHTML = `<p>${result.message}</p>`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function submitModelForm() {
+            const form = document.getElementById('addModelForm');
+            const modelName = form.newModelName.value;
+
+            fetch('/add-to-models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ modelName })
+            })
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('modelResultMessage').innerHTML = `<p>${result.message}</p>`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
