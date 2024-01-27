@@ -75,6 +75,38 @@ app.get('/get-initial-models', (req, res) => {
   });
 });
 
+
+// Define a route to generate the distribution graph
+app.get('/distribution-graph', (req, res) => {
+  const query = 'SELECT failureDate FROM ProductTestingLog ORDER BY failureDate ASC';
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching failure dates:', err);
+      res.status(500).json({ message: 'Error fetching failure dates' });
+    } else {
+      const failureDates = results.map(result => result.failureDate);
+      const distributionData = createDistributionData(failureDates);
+
+      // Send the distribution data as JSON response
+      res.json(distributionData);
+    }
+  });
+});
+
+// Helper function to create distribution data
+function createDistributionData(dates) {
+  const distributionData = {};
+
+  // Iterate through dates and count occurrences for each month
+  dates.forEach(date => {
+    const monthYear = new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric' });
+    distributionData[monthYear] = (distributionData[monthYear] || 0) + 1;
+  });
+
+  return distributionData;
+}
+
+
 app.post('/signup', (req, res) => {
   const { username, email, pass } = req.body;
   const insertQuery = 'INSERT INTO users (username, email, pass) VALUES (?, ?, ?)';
