@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 
@@ -14,7 +15,20 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Define a route to render the form
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname + 'login.html'));
+});
+
+
+
 app.use(bodyParser.json());
+
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: true
+}));
 
 // Connection details
 const connection = mysql.createConnection({
@@ -38,9 +52,14 @@ connection.connect((err) => {
   console.log('Connected to the database');
 });
 
+
 // Define a route to render the form
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
 });
 
 app.get('/get-initial-models', (req, res) => {
@@ -55,6 +74,74 @@ app.get('/get-initial-models', (req, res) => {
     }
   });
 });
+
+app.post('/signup', (req, res) => {
+  const { username, email, pass } = req.body;
+  const insertQuery = 'INSERT INTO users (username, email, pass) VALUES (?, ?, ?)';
+  connection.query(insertQuery, [username, email, pass], (err, result) => {
+    if (err) {
+      console.error('Error signing up user:', err);
+      console.log('User signup failed');
+      return res.status(500).send('Error signing up user');
+    } else {
+      console.log('User signed up successfully');
+      console.log('User signup successful');
+      return res.status(200).send('User signed up successfully');
+    }
+  });
+});
+
+// Handle user login
+app.post('/login', (req, res) => {
+  const { email, pass } = req.body;
+
+  if (!email || !pass) {
+    console.error('Email and password are required');
+    return res.status(400).send('Email and password are required');
+  }
+
+  const selectQuery = 'SELECT * FROM users WHERE email = ?';
+  connection.query(selectQuery, [email], (err, result) => {
+    if (err) {
+      console.error('Error logging in user:', err);
+      return res.status(500).send('Error logging in user');
+    }
+
+    if (result.length === 0) {
+      console.error('User not found');
+      return res.status(404).send('User not found');
+    }
+
+    const user = result[0];
+
+    // Assuming 'pass' is the name of the field in the database for the password
+    if (pass === user.pass) {
+      req.session.isLoggedIn = true;
+      console.log('User logged in successfully');
+      console.log('User login successful');
+      return res.redirect('/index.html'); // Redirect to index.html
+    } else {
+      console.error('Invalid email or password');
+      return res.status(401).send('Invalid email or password');
+    }
+  });
+});
+
+// Middleware to check if user is logged in
+const isLoggedIn = (req, res, next) => {
+  if (req.session.isLoggedIn) {
+    next(); // Continue to the next middleware or route handler
+  } else {
+    res.redirect('/login'); // Redirect to login page if not logged in
+  }
+};
+
+// Render Maintainable page only if user is logged in
+app.get('/index', isLoggedIn, (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+
 
 // Define a route to handle form submission and insert data into the ProductTestingLog table
 // Modify the route to handle form submission and insert data into the ProductTestingLog table
@@ -107,7 +194,6 @@ app.post('/add-to-models', (req, res) => {
     }
   });
 });
-
 
 
 // Start the server

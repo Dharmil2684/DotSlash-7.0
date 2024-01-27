@@ -16,6 +16,65 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.navbar {
+    overflow: hidden;
+    background-color: #333;
+}
+
+.tital {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navend {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    padding-left: 20px;
+    /* Add some padding to provide space between the left edge of the page and the elements */
+    box-sizing: border-box;
+    /* Ensure padding is included in the width calculation */
+}
+
+.navbar a {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+    background-color: #555;
+}
+
+.navbar a:hover {
+    background-color: #555;
+}
+
+/* Clear floats (clearfix hack) */
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.flex-container > div {
+    width: 50%;
+}
+
+.flexi > div {
+    width: 50%;
+}
+
+.flex-container {
+    display: flex;
+}
+
 /* Heading styles */
 h1 {
     text-align: center;
@@ -23,7 +82,6 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Form styles */
 form {
     margin-bottom: 30px;
 }
@@ -71,14 +129,25 @@ button:hover {
     background-color: #45a049;
 }
 
+.two {
+    margin: auto auto;
+}
+
 #productResultMessage,
 #modelResultMessage {
     color: red;
     max-width: 500px;
-    margin: 20px auto;
     padding: 16px;
     background-color: #f2f2f2;
     border-radius: 6px;
+}
+
+#modelResultMessage {
+    margin: 20px auto;
+}
+
+#productResultMessage {
+    margin: 0px auto;
 }
 
 /* Responsive styles */
