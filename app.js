@@ -2,8 +2,17 @@ const fs = require('fs')
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
+
+// Serve static files (including CSS)
+app.use(express.static(__dirname));
+
+// Define routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.use(bodyParser.json());
 
@@ -37,13 +46,13 @@ app.get('/', (req, res) => {
 app.get('/get-initial-models', (req, res) => {
   const query = 'SELECT ModelName FROM Models';
   connection.query(query, (err, results) => {
-      if (err) {
-          console.error('Error fetching initial Model Names:', err);
-          res.status(500).json({ message: 'Error fetching initial Model Names' });
-      } else {
-          const modelNames = results.map(result => result.ModelName);
-          res.json({ modelNames });
-      }
+    if (err) {
+      console.error('Error fetching initial Model Names:', err);
+      res.status(500).json({ message: 'Error fetching initial Model Names' });
+    } else {
+      const modelNames = results.map(result => result.ModelName);
+      res.json({ modelNames });
+    }
   });
 });
 
@@ -55,30 +64,30 @@ app.post('/add-to-testing-log', (req, res) => {
   // Query to get ModelID based on ModelName
   const getModelIdQuery = 'SELECT ModelID FROM Models WHERE ModelName = ?';
   connection.query(getModelIdQuery, [modelName], (err, result) => {
-      if (err) {
-          console.error('Error getting ModelID:', err);
-          res.status(500).json({ message: 'Error getting ModelID' });
+    if (err) {
+      console.error('Error getting ModelID:', err);
+      res.status(500).json({ message: 'Error getting ModelID' });
+    } else {
+      if (result.length === 0) {
+        res.status(404).json({ message: 'ModelName not found' });
       } else {
-          if (result.length === 0) {
-              res.status(404).json({ message: 'ModelName not found' });
+        const modelId = result[0].ModelID;
+
+        // Insert data into ProductTestingLog table
+        const insertQuery = 'INSERT INTO ProductTestingLog (ProductID, ModelID, TestingStartDate, FailureDate, MaintenanceCost) VALUES (?, ?, ?, ?, ?)';
+        const values = [productId, modelId, testingStartDate, failureDate, maintenanceCost];
+
+        connection.query(insertQuery, values, (err, result) => {
+          if (err) {
+            console.error('Error inserting data into ProductTestingLog:', err);
+            res.status(500).json({ message: 'Error inserting data into ProductTestingLog' });
           } else {
-              const modelId = result[0].ModelID;
-
-              // Insert data into ProductTestingLog table
-              const insertQuery = 'INSERT INTO ProductTestingLog (ProductID, ModelID, TestingStartDate, FailureDate, MaintenanceCost) VALUES (?, ?, ?, ?, ?)';
-              const values = [productId, modelId, testingStartDate, failureDate, maintenanceCost];
-
-              connection.query(insertQuery, values, (err, result) => {
-                  if (err) {
-                      console.error('Error inserting data into ProductTestingLog:', err);
-                      res.status(500).json({ message: 'Error inserting data into ProductTestingLog' });
-                  } else {
-                      console.log('Data inserted into ProductTestingLog:', result);
-                      res.json({ message: 'Data inserted into ProductTestingLog successfully' });
-                  }
-              });
+            console.log('Data inserted into ProductTestingLog:', result);
+            res.json({ message: 'Data inserted into ProductTestingLog successfully' });
           }
+        });
       }
+    }
   });
 });
 
