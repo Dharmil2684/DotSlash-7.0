@@ -18,53 +18,19 @@
             /* Added margin auto for centering */
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Product Testing Log Form</h1>
-    </div>
-    <!-- Form for adding data to ProductTestingLog table -->
-    <form id="productTestingForm" class="container">
-        <label for="productId">Product ID:</label>
-        <input type="number" id="productId" name="productId" required><br>
-
-        <label for="modelName">Model Name:</label>
-        <select id="modelName" name="modelName" required></select><br>
-
-        <label for="testingStartDate">Testing Start Date:</label>
-        <input type="date" id="testingStartDate" name="testingStartDate" required><br>
-
-        <label for="failureDate">Failure Date:</label>
-        <input type="date" id="failureDate" name="failureDate" required><br>
-
-        <label for="maintenanceCost">Maintenance Cost:</label>
-        <input type="number" id="maintenanceCost" name="maintenanceCost" step="0.01" required><br>
-
-        <button type="button" onclick="submitProductForm()">Submit Product Form</button>
-    </form>
-
-    <!-- Result message for the ProductTestingLog form -->
-    <div id="productResultMessage"></div>
-
-    <!-- Form for adding data to Models table -->
-    <form id="addModelForm" class="container" style="display: none;">
-        <label for="newModelName">New Model Name:</label>
-        <input type="text" id="newModelName" name="newModelName" required><br>
-
-        <button type="button" onclick="submitModelForm()">Submit Model Form</button>
-        <button type="button" onclick="refreshModelDropdown('addModelButton')">Refresh Model Dropdown</button>
-
-        <!-- Refresh button to update Model Names dropdown -->
-        <button type="button" onclick="refreshModelDropdown()">Refresh Model Dropdown</button>
-    </form>
-
-    <!-- Center align the button container -->
-    <div class="center-container">
-        <!-- Button to toggle the "New Model Name" container -->
-        <button type="button" id="addModelButton" onclick="toggleNewModelForm('addModelButton')"
-            class="centered-button">Add New Model</button>
+    <!-- Navbar -->
+    <div class="navbar" style="display: flex;">
+        <div class="tital">
+            <a href="#" style="font-size: 20px; font-weight: bold;">Product Testing</a>
+        </div>
+        <div class="navend">
+            <a href="login.html" style="font-size: 18px;">Home</a>
+            <a href="#" style="font-size: 16px;">Maintainable</a>
+            <a href="#" style="font-size: 18px;">Warranty</a>
+        </div>
     </div>
 
     <div class="flex-container">
