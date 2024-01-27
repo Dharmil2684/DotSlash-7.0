@@ -15,8 +15,8 @@
         <label for="productId">Product ID:</label>
         <input type="number" id="productId" name="productId" required><br>
 
-        <label for="modelId">Model ID:</label>
-        <input type="number" id="modelId" name="modelId" required><br>
+        <label for="modelName">Model Name:</label>
+        <select id="modelName" name="modelName" required></select><br>
 
         <label for="testingStartDate">Testing Start Date:</label>
         <input type="date" id="testingStartDate" name="testingStartDate" required><br>
@@ -39,18 +39,73 @@
         <input type="text" id="newModelName" name="newModelName" required><br>
 
         <button type="button" onclick="submitModelForm()">Submit Model Form</button>
+        
+        <!-- Refresh button to update Model Names dropdown -->
+        <button type="button" onclick="refreshModelDropdown()">Refresh Model Dropdown</button>
     </form>
 
     <!-- Result message for the Models form -->
     <div id="modelResultMessage"></div>
 
     <script>
+        // Function to fetch and populate Model Names when the page loads
+        function fetchAndPopulateModelNames() {
+            const modelNameDropdown = document.getElementById('modelName');
+
+            fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
+                .then(response => response.json())
+                .then(data => {
+                    const modelNames = data.modelNames;
+
+                    // Populate the dropdown with initial Model Names
+                    modelNames.forEach(modelName => {
+                        const option = document.createElement('option');
+                        option.value = modelName;
+                        option.textContent = modelName;
+                        modelNameDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching initial Model Names:', error);
+                });
+        }
+
+        // Fetch and populate Model Names when the page loads
+        document.addEventListener('DOMContentLoaded', fetchAndPopulateModelNames);
+
+        // Function to refresh Model Names dropdown
+        function refreshModelDropdown() {
+            const modelNameDropdown = document.getElementById('modelName');
+
+            // Clear existing options
+            modelNameDropdown.innerHTML = '';
+
+            // Fetch and populate updated Model Names
+            fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
+                .then(response => response.json())
+                .then(data => {
+                    const modelNames = data.modelNames;
+
+                    // Populate the dropdown with updated Model Names
+                    modelNames.forEach(modelName => {
+                        const option = document.createElement('option');
+                        option.value = modelName;
+                        option.textContent = modelName;
+                        modelNameDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching updated Model Names:', error);
+                });
+        }
+
+        // Function to submit Product Form
         function submitProductForm() {
             const form = document.getElementById('productTestingForm');
 
             const data = {
                 productId: form.productId.value,
-                modelId: form.modelId.value,
+                modelName: form.modelName.value,
                 testingStartDate: form.testingStartDate.value,
                 failureDate: form.failureDate.value,
                 maintenanceCost: form.maintenanceCost.value
@@ -72,6 +127,7 @@
                 });
         }
 
+        // Function to submit Model Form
         function submitModelForm() {
             const form = document.getElementById('addModelForm');
             const modelName = form.newModelName.value;
@@ -86,6 +142,9 @@
                 .then(response => response.json())
                 .then(result => {
                     document.getElementById('modelResultMessage').innerHTML = `<p>${result.message}</p>`;
+
+                    // After adding a new model, refresh the Model Names dropdown
+                    refreshModelDropdown();
                 })
                 .catch(error => {
                     console.error('Error:', error);
