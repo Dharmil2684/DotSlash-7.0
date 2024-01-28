@@ -80,9 +80,12 @@
                     class="centered-button">Add New Model</button>
             </div>
 
-            <!-- Result message for the Models form -->
-            <div id="modelResultMessage"></div>
-        </div>
+    <!-- Result message for the Models form -->
+    <div id="modelResultMessage"></div>
+
+    <a href="/stats.html">
+        <button type="button">Go to Stats</button>
+    </a>
 
         <script>
             // Function to fetch and populate Model Names when the page loads
@@ -207,14 +210,14 @@
                     .then(result => {
                         document.getElementById('modelResultMessage').innerHTML = `<p>${result.message}</p>`;
 
-                        // After adding a new model, refresh the Model Names dropdown
-                        refreshModelDropdown();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            }
-        </script>
+                    // After adding a new model, refresh the Model Names dropdown
+                    refreshModelDropdown();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
 </body>
 
 </html>

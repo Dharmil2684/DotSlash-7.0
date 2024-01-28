@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Testing Log Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Center align container */
+        .center-container {
+            text-align: center;
+        }
+
+        /* Center align button */
+        .centered-button {
+            margin: 0 auto;
+            /* Added margin auto for centering */
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="container_stats" style="text-align: center;">
+
+        <a href="/index.html">
+            <button type="button" class="centered-button">Go to Home</button>
+        </a>
+        <br>
+        <br>
+        <br>
+
+        <!-- Model dropdown for the stats.html page -->
+        <label for="modelName">Model Name:</label>
+        <select id="modelName" name="modelName" required></select><br>
+
+        <label for="productCost">Product Cost:</label>
+        <input type="number" id="productCost" name="productCost" required><br>
+
+        <label for="productionCost">Production Cost:</label>
+        <input type="number" id="productionCost" name="productionCost" required><br>
+
+        <label for="desiredProfitMargin">Desired Profit Margin (%):</label>
+        <input type="number" id="desiredProfitMargin" name="desiredProfitMargin" required><br>
+
+        <!-- Button to trigger the calculation of optimal warranty duration -->
+        <button type="button" class="centered-button" onclick="calculateOptimalWarranty()">Calculate Optimal Warranty
+            Duration</button>
+
+        <!-- Display the optimal warranty duration -->
+        <div id="optimalWarrantyResult"></div>
+
+        <!-- Display the scatter plot image -->
+        <div class="center-container" style="width: 80%; margin: 20px auto; text-align: center;">
+            <div id="scatterPlotImageContainer">
+                <!-- Image will be loaded here after conditions are met -->
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        // Function to fetch and populate Model Names when the page loads
+        function fetchAndPopulateModelNames() {
+            const modelNameDropdown = document.getElementById('modelName');
+
+            fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
+                .then(response => response.json())
+                .then(data => {
+                    const modelNames = data.modelNames;
+
+                    // Populate the dropdown with initial Model Names
+                    modelNames.forEach(modelName => {
+                        const option = document.createElement('option');
+                        option.value = modelName;
+                        option.textContent = modelName;
+                        modelNameDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching initial Model Names:', error);
+                });
+        }
+
+        // Fetch and populate Model Names when the page loads
+        document.addEventListener('DOMContentLoaded', fetchAndPopulateModelNames);
+
+        function calculateOptimalWarranty() {
+            const modelName = document.getElementById('modelName').value;
+            const productCost = parseFloat(document.getElementById('productCost').value);
+            const productionCost = parseFloat(document.getElementById('productionCost').value);
+            const desiredProfitMarginPercent = parseFloat(document.getElementById('desiredProfitMargin').value);
+
+            // Validate input values
+            if (isNaN(productCost) || isNaN(productionCost) || isNaN(desiredProfitMarginPercent)) {
+                console.log('Invalid input values. Please enter valid numeric values.');
+                return;
+            }
+
+            fetch('/calculate-optimal-warranty', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    modelName: modelName,
+                    productCost: productCost,
+                    productionCost: productionCost,
+                    desiredProfitMarginPercent: desiredProfitMarginPercent,
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const optimalWarrantyResult = document.getElementById('optimalWarrantyResult');
+                    optimalWarrantyResult.innerHTML = `<p>Optimal Warranty Duration: ${data.warrantyDuration} months</p>`;
+
+                    // Fetch and update scatter plot image only after optimal warranty calculation
+                    fetch('/scatter-plot1-image?modelName=' + modelName)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = URL.createObjectURL(blob);
+
+                            // Create an image element and append it to the container
+                            const scatterPlotImageContainer = document.getElementById('scatterPlotImageContainer');
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.alt = 'Scatterplot Image';
+                            scatterPlotImageContainer.innerHTML = ''; // Clear existing content
+                            scatterPlotImageContainer.appendChild(img);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching scatter plot image:', error);
+                        });
+                })
+                .catch(error => {
+                    console.error('Error fetching optimal warranty duration:', error);
+                });
+        }
+
+        document.getElementById('modelName').addEventListener('change', function () {
+            const selectedModelName = this.value;
+            fetch(`/calculate-maintenance-data?modelName=${selectedModelName}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Call the function to update the scatter plot
+                    updateScatterPlot(data);
+                })
+                .catch(error => console.error('Error fetching maintenance data:', error));
+        });
+
+
+
+    </script>
+</body>
+
+</html>

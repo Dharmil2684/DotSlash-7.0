@@ -1,11 +1,13 @@
-const fs = require('fs')
+const fs = require('fs');
 const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { exec } = require('child_process');
 const session = require('express-session');
 
 const app = express();
+app.use(bodyParser.json());
 
 // Serve static files (including CSS)
 app.use(express.static(__dirname));
@@ -14,6 +16,11 @@ app.use(express.static(__dirname));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+app.get('/stats', (req, res) => {
+  res.sendFile(path.join(__dirname, 'stats.html'));
+});
+
 
 // Define a route to render the form
 app.get('/', (req, res) => {
@@ -75,6 +82,151 @@ app.get('/get-initial-models', (req, res) => {
   });
 });
 
+app.get('/calculate-maintenance-data', async (req, res) => {
+  try {
+    const modelName = req.query.modelName;
+
+    // Execute the SQL query to retrieve ModelID based on ModelName
+    const modelsResult = await executeQuery('SELECT ModelID FROM Models WHERE ModelName = ?', [modelName]);
+
+    if (modelsResult.length === 0) {
+      console.error('No model found with the name:', modelName);
+      return res.status(404).json({ message: 'Model not found' });
+    }
+
+    const modelID = modelsResult[0].ModelID;
+
+    // Execute the SQL query to retrieve ProductTestingLog data based on ModelID
+    const testingLogResult = await executeQuery('SELECT * FROM ProductTestingLog WHERE ModelID = ? ORDER BY ABS(FailureDate - TestingStartDate)', [modelID]);
+
+    // Initialize 2D array to store results
+    const results = [];
+
+    // Iterate over each row in the testing log
+    for (const row of testingLogResult) {
+      const { TestingStartDate, FailureDate } = row;
+
+      // Calculate total maintenance cost
+      const totalMaintenanceCost = await calculateTotalMaintenanceCost(TestingStartDate, FailureDate);
+
+      // Calculate duration in months
+      const durationInMonths = calculateDurationInMonths(TestingStartDate, FailureDate);
+
+      // Push the result to the 2D array
+      results.push([totalMaintenanceCost, durationInMonths]);
+    }
+
+    // Output the 2D array
+    console.log('Result:', results);
+
+    // Send the results as JSON response
+    res.json({ results });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Function to execute SQL queries with Promises
+function executeQuery(query, values) {
+  return new Promise((resolve, reject) => {
+    connection.query(query, values, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
+// Function to calculate total maintenance cost with a Promise
+function calculateTotalMaintenanceCost(testingStartDate, failureDate) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT SUM(MaintenanceCost) AS TotalMaintenanceCost
+      FROM ProductTestingLog
+      WHERE TestingStartDate <= ? AND FailureDate <= ?;
+    `;
+    connection.query(query, [testingStartDate, failureDate], (err, row) => {
+      if (err) {
+        reject(err);
+      } else {
+        const totalMaintenanceCost = row[0].TotalMaintenanceCost || 0;
+        resolve(totalMaintenanceCost);
+      }
+    });
+  });
+}
+
+// Serve the HTML page
+app.use(express.static('public'));
+
+app.get('/run-python-script1', (req, res) => {
+  const pythonScript = 'scatter_plot1.py';
+
+  // Execute the Python script
+  exec(`python ${pythonScript}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing Python script: ${error.message}`);
+      res.status(500).json({ message: 'Error executing Python script' });
+      return;
+    }
+
+    console.log('Python script executed successfully');
+    console.log('Python script output:', stdout);
+
+    // Optionally, you can send the Python script output as a response
+    res.json({ message: 'Python script executed successfully', output: stdout });
+  });
+});
+
+app.get('/generate-scatterplot1', (req, res) => {
+  exec('python scatter_plot1.py', (error, stdout, stderr) => {
+      if (error) {
+          console.error(`Error executing Python script: ${error.message}`);
+          res.status(500).json({ message: 'Error executing Python script' });
+          return;
+      }
+
+      // Read the scatterplot image and send it as a response
+      const imagePath = path.join(__dirname, 'scatterplot.png');
+      fs.readFile(imagePath, (err, data) => {
+          if (err) {
+              console.error(`Error reading scatterplot image: ${err.message}`);
+              res.status(500).json({ message: 'Error reading scatterplot image' });
+              return;
+          }
+
+          // Set the appropriate headers for image response
+          res.setHeader('Content-Type', 'image/png');
+          res.send(data);
+      });
+  });
+});
+
+// Serve the scatter plot image dynamically
+app.get('/scatter-plot1-image', (req, res) => {
+  const modelName = req.query.modelName || 'DefaultModel';
+
+  // Run the Python script with modelName as a command-line argument
+  exec(`python scatter_plot1.py ${modelName}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error running Python script: ${error.message}`);
+      return res.status(500).json({ message: 'Error running Python script' });
+    }
+    if (stderr) {
+      console.error(`Python script stderr: ${stderr}`);
+      return res.status(500).json({ message: 'Python script stderr' });
+    }
+    console.log(`Python script stdout: ${stdout}`);
+
+    // Send the scatter plot image as a response
+    const imagePath = path.join(__dirname, `scatter_plot1_${modelName}.png`);
+    res.sendFile(imagePath);
+  });
+});
+
 
 // Define a route to generate the distribution graph
 app.get('/distribution-graph', (req, res) => {
@@ -105,6 +257,112 @@ function createDistributionData(dates) {
 
   return distributionData;
 }
+
+app.post('/calculate-optimal-warranty', async (req, res) => {
+  try {
+    console.log('Received POST request to calculate optimal warranty.');
+
+    const modelName = req.body.modelName;
+    const productCost = parseFloat(req.body.productCost);
+    const productionCost = parseFloat(req.body.productionCost);
+    const desiredProfitMarginPercent = parseFloat(req.body.desiredProfitMarginPercent);
+
+    console.log(`Model Name: ${modelName}`);
+    console.log(`Product Cost: ${productCost}`);
+    console.log(`Production Cost: ${productionCost}`);
+    console.log(`Desired Profit Margin Percent: ${desiredProfitMarginPercent}`);
+
+    if (isNaN(productCost) || isNaN(productionCost) || isNaN(desiredProfitMarginPercent)) {
+      console.log('Invalid input values. Please enter valid numeric values.');
+      return res.status(400).json({ message: 'Invalid input values. Please enter valid numeric values.' });
+    }
+
+    console.log('Fetching unique product IDs...');
+    const uniqueProductIds = await getUniqueProductIds(modelName);
+    console.log('Unique Product IDs:', uniqueProductIds);
+
+    const numProducts = uniqueProductIds.length;
+    console.log(`Number of Products: ${numProducts}`);
+
+    let warrantyDuration = 0; // in days
+    let totalMaintenanceCost = 0;
+
+    console.log('Fetching maintenance costs...');
+    const maintenanceCosts = await getMaintenanceCosts(modelName);
+    console.log('Maintenance Costs:', maintenanceCosts);
+
+    for (let row of maintenanceCosts) {
+      if (!uniqueProductIds.includes(row.ProductID)) {
+        continue;
+      }
+
+      totalMaintenanceCost += parseFloat(row.MaintenanceCost);
+
+      const numerator = numProducts * parseFloat(productCost) - (numProducts * parseFloat(productionCost) + totalMaintenanceCost);
+      const denominator = numProducts * parseFloat(productionCost);  // Ensure denominator is non-negative
+
+      // Ensure that the value inside the square root is non-negative
+      const profitMarginPercent = 100 * numerator / denominator;
+
+      console.log(`Profit Margin Percent: ${profitMarginPercent}`);
+      console.log('');
+
+      if (isNaN(profitMarginPercent) || profitMarginPercent < parseFloat(desiredProfitMarginPercent)) {
+        console.log('Profit margin falls below the desired threshold or is NaN. Stopping.');
+        break;
+      }
+
+      warrantyDuration++;
+    }
+
+
+
+    const warrantyDurationInMonths = warrantyDuration / 30;
+    console.log(`Final Warranty Duration (in days): ${warrantyDuration}`);
+    console.log(`Final Warranty Duration (in months): ${warrantyDurationInMonths}`);
+
+    console.log('Sending response...');
+    res.json({ warrantyDuration: warrantyDurationInMonths });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+function getUniqueProductIds(modelName) {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT DISTINCT ProductID FROM ProductTestingLog WHERE ModelID = (SELECT ModelID FROM Models WHERE ModelName = ?)';
+    console.log('Executing SQL Query for Unique Product IDs...');
+    connection.query(query, [modelName], (err, result) => {
+      if (err) {
+        console.error('Error fetching Unique Product IDs:', err);
+        reject(err);
+      } else {
+        console.log('Unique Product IDs Fetched Successfully.');
+        resolve(result.map(row => row.ProductID));
+      }
+    });
+  });
+}
+
+function getMaintenanceCosts(modelName) {
+  return new Promise((resolve, reject) => {
+    const query = 'SELECT * FROM ProductTestingLog WHERE ModelID = (SELECT ModelID FROM Models WHERE ModelName = ?) ORDER BY ABS(FailureDate - TestingStartDate)';
+    console.log('Executing SQL Query for Maintenance Costs...');
+    connection.query(query, [modelName], (err, result) => {
+      if (err) {
+        console.error('Error fetching Maintenance Costs:', err);
+        reject(err);
+      } else {
+        console.log('Maintenance Costs Fetched Successfully.');
+        resolve(result);
+      }
+    });
+  });
+}
+
+
+
 
 
 app.post('/signup', (req, res) => {
@@ -210,7 +468,6 @@ app.post('/add-to-testing-log', (req, res) => {
   });
 });
 
-
 app.post('/add-to-models', (req, res) => {
   const { modelName } = req.body;
   const insertQuery = 'INSERT INTO Models (ModelName) VALUES (?)';
@@ -226,7 +483,6 @@ app.post('/add-to-models', (req, res) => {
     }
   });
 });
-
 
 // Start the server
 const port = 3000;
