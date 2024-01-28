@@ -29,7 +29,7 @@
         <div class="navend">
             <a href="login.html" style="font-size: 18px;">Home</a>
             <a href="#" style="font-size: 16px;">Maintainable</a>
-            <a href="#" style="font-size: 18px;">Warranty</a>
+            <a href="stats.html" style="font-size: 18px;">Warranty</a>
         </div>
     </div>
 
@@ -80,144 +80,141 @@
                     class="centered-button">Add New Model</button>
             </div>
 
-    <!-- Result message for the Models form -->
-    <div id="modelResultMessage"></div>
+            <!-- Result message for the Models form -->
+            <div id="modelResultMessage"></div>
 
-    <a href="/stats.html">
-        <button type="button">Go to Stats</button>
-    </a>
 
-        <script>
-            // Function to fetch and populate Model Names when the page loads
-            function fetchAndPopulateModelNames() {
-                const modelNameDropdown = document.getElementById('modelName');
+            <script>
+                // Function to fetch and populate Model Names when the page loads
+                function fetchAndPopulateModelNames() {
+                    const modelNameDropdown = document.getElementById('modelName');
 
-                fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
-                    .then(response => response.json())
-                    .then(data => {
-                        const modelNames = data.modelNames;
+                    fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
+                        .then(response => response.json())
+                        .then(data => {
+                            const modelNames = data.modelNames;
 
-                        // Populate the dropdown with initial Model Names
-                        modelNames.forEach(modelName => {
-                            const option = document.createElement('option');
-                            option.value = modelName;
-                            option.textContent = modelName;
-                            modelNameDropdown.appendChild(option);
+                            // Populate the dropdown with initial Model Names
+                            modelNames.forEach(modelName => {
+                                const option = document.createElement('option');
+                                option.value = modelName;
+                                option.textContent = modelName;
+                                modelNameDropdown.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching initial Model Names:', error);
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching initial Model Names:', error);
-                    });
-            }
-
-            // Fetch and populate Model Names when the page loads
-            document.addEventListener('DOMContentLoaded', fetchAndPopulateModelNames);
-
-            // Function to toggle visibility of "New Model Name" container and hide the button
-            function toggleNewModelForm(buttonId) {
-                const addModelForm = document.getElementById('addModelForm');
-                const addButton = document.getElementById(buttonId);
-
-                // Hide the button
-                addButton.style.display = 'none';
-
-                // Toggle visibility of the form
-                if (addModelForm.style.display === 'none' || addModelForm.style.display === '') {
-                    addModelForm.style.display = 'block';
-                } else {
-                    addModelForm.style.display = 'none';
-                    addButton.textContent = 'Add New Model'; // Update button text
                 }
-            }
 
-            // Function to refresh Model Names dropdown
-            function refreshModelDropdown(buttonId) {
-                const modelNameDropdown = document.getElementById('modelName');
-                const addButton = document.getElementById(buttonId);
-                const addModelForm = document.getElementById('addModelForm');
+                // Fetch and populate Model Names when the page loads
+                document.addEventListener('DOMContentLoaded', fetchAndPopulateModelNames);
 
-                // Clear existing options
-                modelNameDropdown.innerHTML = '';
+                // Function to toggle visibility of "New Model Name" container and hide the button
+                function toggleNewModelForm(buttonId) {
+                    const addModelForm = document.getElementById('addModelForm');
+                    const addButton = document.getElementById(buttonId);
 
-                // Fetch and populate updated Model Names
-                fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
-                    .then(response => response.json())
-                    .then(data => {
-                        const modelNames = data.modelNames;
+                    // Hide the button
+                    addButton.style.display = 'none';
 
-                        // Populate the dropdown with updated Model Names
-                        modelNames.forEach(modelName => {
-                            const option = document.createElement('option');
-                            option.value = modelName;
-                            option.textContent = modelName;
-                            modelNameDropdown.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching updated Model Names:', error);
-                    })
-                    .finally(() => {
-                        // Show the button
-                        addButton.style.display = 'block';
-                        // Hide the addModelForm
+                    // Toggle visibility of the form
+                    if (addModelForm.style.display === 'none' || addModelForm.style.display === '') {
+                        addModelForm.style.display = 'block';
+                    } else {
                         addModelForm.style.display = 'none';
-                        // Center the button again
-                        addButton.classList.add('centered-button');
-                    });
-            }
+                        addButton.textContent = 'Add New Model'; // Update button text
+                    }
+                }
 
-            // Function to submit Product Form
-            function submitProductForm() {
-                const form = document.getElementById('productTestingForm');
+                // Function to refresh Model Names dropdown
+                function refreshModelDropdown(buttonId) {
+                    const modelNameDropdown = document.getElementById('modelName');
+                    const addButton = document.getElementById(buttonId);
+                    const addModelForm = document.getElementById('addModelForm');
 
-                const data = {
-                    productId: form.productId.value,
-                    modelName: form.modelName.value,
-                    testingStartDate: form.testingStartDate.value,
-                    failureDate: form.failureDate.value,
-                    maintenanceCost: form.maintenanceCost.value
-                };
+                    // Clear existing options
+                    modelNameDropdown.innerHTML = '';
 
-                fetch('/add-to-testing-log', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                    .then(response => response.json())
-                    .then(result => {
-                        document.getElementById('productResultMessage').innerHTML = `<p>${result.message}</p>`;
+                    // Fetch and populate updated Model Names
+                    fetch('/get-initial-models') // Assuming you have a route to fetch initial Model Names
+                        .then(response => response.json())
+                        .then(data => {
+                            const modelNames = data.modelNames;
+
+                            // Populate the dropdown with updated Model Names
+                            modelNames.forEach(modelName => {
+                                const option = document.createElement('option');
+                                option.value = modelName;
+                                option.textContent = modelName;
+                                modelNameDropdown.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching updated Model Names:', error);
+                        })
+                        .finally(() => {
+                            // Show the button
+                            addButton.style.display = 'block';
+                            // Hide the addModelForm
+                            addModelForm.style.display = 'none';
+                            // Center the button again
+                            addButton.classList.add('centered-button');
+                        });
+                }
+
+                // Function to submit Product Form
+                function submitProductForm() {
+                    const form = document.getElementById('productTestingForm');
+
+                    const data = {
+                        productId: form.productId.value,
+                        modelName: form.modelName.value,
+                        testingStartDate: form.testingStartDate.value,
+                        failureDate: form.failureDate.value,
+                        maintenanceCost: form.maintenanceCost.value
+                    };
+
+                    fetch('/add-to-testing-log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            }
+                        .then(response => response.json())
+                        .then(result => {
+                            document.getElementById('productResultMessage').innerHTML = `<p>${result.message}</p>`;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
 
-            // Function to submit Model Form
-            function submitModelForm() {
-                const form = document.getElementById('addModelForm');
-                const modelName = form.newModelName.value;
+                // Function to submit Model Form
+                function submitModelForm() {
+                    const form = document.getElementById('addModelForm');
+                    const modelName = form.newModelName.value;
 
-                fetch('/add-to-models', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ modelName })
-                })
-                    .then(response => response.json())
-                    .then(result => {
-                        document.getElementById('modelResultMessage').innerHTML = `<p>${result.message}</p>`;
+                    fetch('/add-to-models', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ modelName })
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            document.getElementById('modelResultMessage').innerHTML = `<p>${result.message}</p>`;
 
-                    // After adding a new model, refresh the Model Names dropdown
-                    refreshModelDropdown();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
-    </script>
+                            // After adding a new model, refresh the Model Names dropdown
+                            refreshModelDropdown();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                }
+            </script>
 </body>
 
 </html>

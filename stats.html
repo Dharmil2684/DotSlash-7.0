@@ -23,14 +23,20 @@
 
 <body>
 
-    <div class="container_stats" style="text-align: center;">
+    <!-- Navbar -->
+    <div class="navbar" style="display: flex;">
+        <div class="tital">
+            <a href="#" style="font-size: 20px; font-weight: bold;">Product Testing</a>
+        </div>
+        <div class="navend">
+            <a href="login.html" style="font-size: 18px;">Home</a>
+            <a href="index.html" style="font-size: 16px;">Maintainable</a>
+            <a href="#" style="font-size: 18px;">Warranty</a>
+        </div>
+    </div>
 
-        <a href="/index.html">
-            <button type="button" class="centered-button">Go to Home</button>
-        </a>
-        <br>
-        <br>
-        <br>
+
+    <div class="container_stats" style="text-align: center; max-width: 50%; align-self: center;">
 
         <!-- Model dropdown for the stats.html page -->
         <label for="modelName">Model Name:</label>
@@ -50,7 +56,9 @@
             Duration</button>
 
         <!-- Display the optimal warranty duration -->
-        <div id="optimalWarrantyResult"></div>
+        <div id="optimalWarrantyResult" style="padding: 16px;
+        background-color: #f2f2f2;
+        border-radius: 6px; margin-top:10px; font-size: large; font-weight: bold;"></div>
 
         <!-- Display the scatter plot image -->
         <div class="center-container" style="width: 80%; margin: 20px auto; text-align: center;">
