@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Handle the response from the backend
       if (response.ok) {
-        // Login successful, handle accordingly
-        console.log("Login successful");
+        // Login successful, redirect to index.html
+        window.location.href = 'index.html';
       } else {
         // Login failed, handle accordingly
         console.error("Login failed");
