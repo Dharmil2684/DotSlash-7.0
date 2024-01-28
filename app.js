@@ -317,7 +317,7 @@ app.post('/calculate-optimal-warranty', async (req, res) => {
 
 
 
-    const warrantyDurationInMonths = warrantyDuration / 30;
+    const warrantyDurationInMonths = warrantyDuration;
     console.log(`Final Warranty Duration (in days): ${warrantyDuration}`);
     console.log(`Final Warranty Duration (in months): ${warrantyDurationInMonths}`);
 
