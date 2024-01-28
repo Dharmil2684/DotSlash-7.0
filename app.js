@@ -183,37 +183,75 @@ app.get('/run-python-script1', (req, res) => {
 
 app.get('/generate-scatterplot1', (req, res) => {
   exec('python scatter_plot1.py', (error, stdout, stderr) => {
-      if (error) {
-          console.error(`Error executing Python script: ${error.message}`);
-          res.status(500).json({ message: 'Error executing Python script' });
-          return;
+    if (error) {
+      console.error(`Error executing Python script: ${error.message}`);
+      res.status(500).json({ message: 'Error executing Python script' });
+      return;
+    }
+
+    // Read the scatterplot image and send it as a response
+    const imagePath = path.join(__dirname, 'scatterplot.png');
+    fs.readFile(imagePath, (err, data) => {
+      if (err) {
+        console.error(`Error reading scatterplot image: ${err.message}`);
+        res.status(500).json({ message: 'Error reading scatterplot image' });
+        return;
       }
 
-      // Read the scatterplot image and send it as a response
-      const imagePath = path.join(__dirname, 'scatterplot.png');
-      fs.readFile(imagePath, (err, data) => {
-          if (err) {
-              console.error(`Error reading scatterplot image: ${err.message}`);
-              res.status(500).json({ message: 'Error reading scatterplot image' });
-              return;
-          }
-
-          // Set the appropriate headers for image response
-          res.setHeader('Content-Type', 'image/png');
-          res.send(data);
-      });
+      // Set the appropriate headers for image response
+      res.setHeader('Content-Type', 'image/png');
+      res.send(data);
+    });
   });
 });
 
-// Serve the scatter plot image dynamically
+
+// Add this route for the line chart image
+app.get('/line-chart-image', (req, res) => {
+  const modelName = req.query.modelName || 'DefaultModel';
+
+  // NEW: Include productCost and productionCost as command-line arguments
+  const productCost = req.query.productCost || 0; // Set default value if not provided
+  const productionCost = req.query.productionCost || 0; // Set default value if not provided
+
+  // Define the Python command for line chart
+  const pythonScriptLine = 'line_chart.py';
+  const pythonCommandLine = `python ${pythonScriptLine} ${modelName} ${productCost} ${productionCost}`;
+
+  exec(pythonCommandLine, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error running Python script for line chart: ${error.message}`);
+      return res.status(500).json({ message: 'Error running Python script for line chart' });
+    }
+    if (stderr) {
+      console.error(`Python script for line chart stderr: ${stderr}`);
+      return res.status(500).json({ message: 'Python script for line chart stderr' });
+    }
+    console.log(`Python script for line chart stdout: ${stdout}`);
+  
+    // Send the line chart image as a response
+    const imagePath = path.join(__dirname, `line_chart_${modelName}.png`);
+    res.sendFile(imagePath);
+  });
+});
+
+
 app.get('/scatter-plot1-image', (req, res) => {
   const modelName = req.query.modelName || 'DefaultModel';
 
-  // Run the Python script with modelName as a command-line argument
-  exec(`python scatter_plot1.py ${modelName}`, (error, stdout, stderr) => {
+  // NEW: Include productCost and productionCost as command-line arguments
+  const productCost = req.query.productCost || 0; // Set default value if not provided
+  const productionCost = req.query.productionCost || 0; // Set default value if not provided
+
+  // Define the Python command for scatter plot
+  const pythonScript = 'scatter_plot1.py';
+  const pythonCommandScatter = `python ${pythonScript} ${modelName} ${productCost} ${productionCost}`;
+
+  // Execute the Python script for scatter plot
+  exec(pythonCommandScatter, (error, stdout, stderr) => {
     if (error) {
-      console.error(`Error running Python script: ${error.message}`);
-      return res.status(500).json({ message: 'Error running Python script' });
+      console.error(`Error running Python script for scatter plot: ${error.message}`);
+      return res.status(500).json({ message: 'Error running Python script for scatter plot' });
     }
     if (stderr) {
       console.error(`Python script stderr: ${stderr}`);
@@ -226,6 +264,8 @@ app.get('/scatter-plot1-image', (req, res) => {
     res.sendFile(imagePath);
   });
 });
+
+
 
 
 // Define a route to generate the distribution graph
@@ -314,15 +354,48 @@ app.post('/calculate-optimal-warranty', async (req, res) => {
 
       warrantyDuration++;
     }
+    
+    // Execute the Python script for scatter plot
+    exec(pythonCommandScatter, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing Python script for scatter plot: ${error.message}`);
+        return res.status(500).json({ message: 'Error executing Python script for scatter plot' });
+      }
+      if (stderr) {
+        console.error(`Python script for scatter plot stderr: ${stderr}`);
+        return res.status(500).json({ message: 'Python script for scatter plot stderr' });
+      }
+      console.log(`Python script for scatter plot stdout: ${stdout}`);
 
+      // Send the scatter plot image as a response
+      const scatterImagePath = path.join(__dirname, `scatter_plot1_${modelName}.png`);
 
+      // NEW: Include line chart in the response
+      const pythonScriptLine = 'line_chart.py';
+      const pythonCommandLine = `python ${pythonScriptLine} ${modelName} ${productCost} ${productionCost}`;
 
-    const warrantyDurationInMonths = warrantyDuration / 30;
-    console.log(`Final Warranty Duration (in days): ${warrantyDuration}`);
-    console.log(`Final Warranty Duration (in months): ${warrantyDurationInMonths}`);
+      // Execute the Python script for line chart
+      exec(pythonCommandLine, (errorLine, stdoutLine, stderrLine) => {
+        if (errorLine) {
+          console.error(`Error executing Python script for line chart: ${errorLine.message}`);
+          return res.status(500).json({ message: 'Error executing Python script for line chart' });
+        }
+        if (stderrLine) {
+          console.error(`Python script for line chart stderr: ${stderrLine}`);
+          return res.status(500).json({ message: 'Python script for line chart stderr' });
+        }
+        console.log(`Python script for line chart stdout: ${stdoutLine}`);
 
-    console.log('Sending response...');
-    res.json({ warrantyDuration: warrantyDurationInMonths });
+        // Send the line chart image as a response
+        const lineImagePath = path.join(__dirname, `line_chart_${modelName}.png`);
+
+        // Send both scatter plot and line chart images in the response
+        res.json({
+          scatterPlotImage: scatterImagePath,
+          lineChartImage: lineImagePath,
+        });
+      });
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Internal Server Error' });

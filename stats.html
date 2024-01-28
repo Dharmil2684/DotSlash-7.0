@@ -52,10 +52,13 @@
         <!-- Display the optimal warranty duration -->
         <div id="optimalWarrantyResult"></div>
 
-        <!-- Display the scatter plot image -->
+        <!-- Display the scatter plot and line chart images -->
         <div class="center-container" style="width: 80%; margin: 20px auto; text-align: center;">
             <div id="scatterPlotImageContainer">
-                <!-- Image will be loaded here after conditions are met -->
+                <!-- Scatter plot image will be loaded here after conditions are met -->
+            </div>
+            <div id="lineChartImageContainer">
+                <!-- Line chart image will be loaded here after conditions are met -->
             </div>
         </div>
 
@@ -100,6 +103,7 @@
                 return;
             }
 
+            // NEW: Include productCost and productionCost in the fetch request
             fetch('/calculate-optimal-warranty', {
                 method: 'POST',
                 headers: {
@@ -121,38 +125,42 @@
                     fetch('/scatter-plot1-image?modelName=' + modelName)
                         .then(response => response.blob())
                         .then(blob => {
-                            const url = URL.createObjectURL(blob);
+                            const scatterPlotUrl = URL.createObjectURL(blob);
 
-                            // Create an image element and append it to the container
+                            // Create an image element for the scatter plot and append it to the container
                             const scatterPlotImageContainer = document.getElementById('scatterPlotImageContainer');
-                            const img = document.createElement('img');
-                            img.src = url;
-                            img.alt = 'Scatterplot Image';
+                            const scatterPlotImg = document.createElement('img');
+                            scatterPlotImg.src = scatterPlotUrl;
+                            scatterPlotImg.alt = 'Scatterplot Image';
                             scatterPlotImageContainer.innerHTML = ''; // Clear existing content
-                            scatterPlotImageContainer.appendChild(img);
+                            scatterPlotImageContainer.appendChild(scatterPlotImg);
                         })
                         .catch(error => {
                             console.error('Error fetching scatter plot image:', error);
+                        });
+
+                    // Fetch and update line chart image only after optimal warranty calculation
+                    fetch('/line-chart-image?modelName=' + modelName)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const lineChartUrl = URL.createObjectURL(blob);
+
+                            // Create an image element for the line chart and append it to the container
+                            const lineChartImageContainer = document.getElementById('lineChartImageContainer');
+                            const lineChartImg = document.createElement('img');
+                            lineChartImg.src = lineChartUrl;
+                            lineChartImg.alt = 'Line Chart Image';
+                            lineChartImageContainer.innerHTML = ''; // Clear existing content
+                            lineChartImageContainer.appendChild(lineChartImg);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching line chart image:', error);
                         });
                 })
                 .catch(error => {
                     console.error('Error fetching optimal warranty duration:', error);
                 });
         }
-
-        document.getElementById('modelName').addEventListener('change', function () {
-            const selectedModelName = this.value;
-            fetch(`/calculate-maintenance-data?modelName=${selectedModelName}`)
-                .then(response => response.json())
-                .then(data => {
-                    // Call the function to update the scatter plot
-                    updateScatterPlot(data);
-                })
-                .catch(error => console.error('Error fetching maintenance data:', error));
-        });
-
-
-
     </script>
 </body>
 
