@@ -181,6 +181,54 @@ app.get('/run-python-script1', (req, res) => {
   });
 });
 
+app.get('/generate-chart-image', async (req, res) => {
+  const modelName = req.query.modelName || 'DefaultModel';
+  const productCost = req.query.productCost || 0;
+  const productionCost = req.query.productionCost || 0;
+
+  // Execute the Python script for scatter plot
+  const pythonScriptScatter = 'scatter_plot1.py';
+  const pythonCommandScatter = `python ${pythonScriptScatter} ${modelName} ${productCost} ${productionCost}`;
+
+  // Execute the Python script for line chart
+  const pythonScriptLine = 'line_chart.py';
+  const pythonCommandLine = `python ${pythonScriptLine} ${modelName} ${productCost} ${productionCost}`;
+
+  try {
+    // Execute the Python script for scatter plot
+    const { stdout: scatterStdout, stderr: scatterStderr } = await execAsync(pythonCommandScatter);
+
+    if (scatterStderr) {
+      console.error(`Python script for scatter plot stderr: ${scatterStderr}`);
+      return res.status(500).json({ message: 'Python script for scatter plot stderr' });
+    }
+
+    console.log(`Python script for scatter plot stdout: ${scatterStdout}`);
+
+    // Execute the Python script for line chart
+    const { stdout: lineStdout, stderr: lineStderr } = await execAsync(pythonCommandLine);
+
+    if (lineStderr) {
+      console.error(`Python script for line chart stderr: ${lineStderr}`);
+      return res.status(500).json({ message: 'Python script for line chart stderr' });
+    }
+
+    console.log(`Python script for line chart stdout: ${lineStdout}`);
+
+    // Send both scatter plot and line chart images as a response
+    const scatterImagePath = path.join(__dirname, `scatter_plot1_${modelName}.png`);
+    const lineImagePath = path.join(__dirname, `line_chart_${modelName}.png`);
+
+    res.json({
+      scatterPlotImage: scatterImagePath,
+      lineChartImage: lineImagePath,
+    });
+  } catch (error) {
+    console.error(`Error running Python scripts: ${error.message}`);
+    res.status(500).json({ message: 'Error running Python scripts' });
+  }
+});
+
 app.get('/generate-scatterplot1', (req, res) => {
   exec('python scatter_plot1.py', (error, stdout, stderr) => {
     if (error) {
