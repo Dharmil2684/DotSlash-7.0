@@ -58,9 +58,6 @@ We welcome contributions from the community to enhance the functionality and usa
 3. Test your changes thoroughly to prevent regressions.
 4. Submit a pull request detailing the changes made and the problem solved.
 
-## License
-
-This project is licensed under the [License Name] License. See the LICENSE.md file for details.
 
 ## Feedback
 
