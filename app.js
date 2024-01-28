@@ -206,34 +206,48 @@ app.get('/generate-scatterplot1', (req, res) => {
 });
 
 
-// Add this route for the line chart image
-app.get('/line-chart-image', (req, res) => {
+const util = require('util');
+const execAsync = util.promisify(exec);
+
+app.get('/line-chart-image', async (req, res) => {
   const modelName = req.query.modelName || 'DefaultModel';
+  const productCost = req.query.productCost || 0;
+  const productionCost = req.query.productionCost || 0;
 
-  // NEW: Include productCost and productionCost as command-line arguments
-  const productCost = req.query.productCost || 0; // Set default value if not provided
-  const productionCost = req.query.productionCost || 0; // Set default value if not provided
-
-  // Define the Python command for line chart
   const pythonScriptLine = 'line_chart.py';
   const pythonCommandLine = `python ${pythonScriptLine} ${modelName} ${productCost} ${productionCost}`;
 
-  exec(pythonCommandLine, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error running Python script for line chart: ${error.message}`);
-      return res.status(500).json({ message: 'Error running Python script for line chart' });
-    }
+  try {
+    const { stdout, stderr } = await execAsync(pythonCommandLine);
+
     if (stderr) {
       console.error(`Python script for line chart stderr: ${stderr}`);
       return res.status(500).json({ message: 'Python script for line chart stderr' });
     }
+
     console.log(`Python script for line chart stdout: ${stdout}`);
-  
-    // Send the line chart image as a response
+
+    // Send the line chart image as a response after the Python script has finished
     const imagePath = path.join(__dirname, `line_chart_${modelName}.png`);
     res.sendFile(imagePath);
-  });
+  } catch (error) {
+    console.error(`Error running Python script for line chart: ${error.message}`);
+    res.status(500).json({ message: 'Error running Python script for line chart' });
+  }
 });
+
+// Function to execute Python scripts with Promises
+function runPythonScript(command) {
+  return new Promise((resolve, reject) => {
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
 
 
 app.get('/scatter-plot1-image', (req, res) => {
