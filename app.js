@@ -39,15 +39,7 @@ app.use(session({
 
 // Connection details
 const connection = mysql.createConnection({
-  host: 'quandale-dingle-warranty-predictor-warranty-prediction.a.aivencloud.com',
-  port: 16942,
-  user: 'avnadmin',
-  password: 'AVNS_NYRB2lUvSBvTE349hkA',
-  database: 'defaultdb',
-  ssl: {
-    ca: fs.readFileSync('ca.pem'),
-    rejectUnauthorized: true
-  }
+  // Private connection details
 });
 
 // Connect to the database
