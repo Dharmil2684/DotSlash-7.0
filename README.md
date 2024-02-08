@@ -1,5 +1,7 @@
 # Warranty Forecasting
 
+This project is our submission for the DotSlash 7.0 Hackathon 2024
+
 ## Introduction
 
 Warranty forecasting plays a crucial role in product-based companies, enabling them to optimize customer satisfaction, manage risks, and streamline operational efficiency. Our web application, "Warranty Forecasting," offers a comprehensive solution for companies to analyze testing data, generate optimal warranty forecasts, and visualize insights through graphical representations.
